@@ -45,7 +45,8 @@ resualt_save_dir        = os.path.join('runs',experiment_name)
 del_dir = input(f"Do you want to delet [{resualt_save_dir}] directory? (y/n)")
 
 if(del_dir=='y'):
-    shutil.rmtree(resualt_save_dir)
+    if(os.exists(resualt_save_dir)):
+        shutil.rmtree(resualt_save_dir)
 else:
     assert del_dir=='y' , 'the program is stoped.'
 
