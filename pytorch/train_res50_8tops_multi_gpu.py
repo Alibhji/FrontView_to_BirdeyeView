@@ -27,6 +27,7 @@ import gc
 
 
 
+
 from torch.utils.tensorboard import SummaryWriter
 SummaryWriter._PRINT_DEPRECATION_WARNINGS = False
 import torchvision
@@ -38,15 +39,14 @@ history = pd.DataFrame()
 start_epoch     = 0
 end___epoch     = 100
 
-train_batch     = 64
+train_batch     = 8
 val_batch       = 8
 num_workers     = 40
 
 learning_rate=0.001
-experiment_name = 'experiment_1'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
-
+experiment_name = 'experiment_1'+f'_epoch_{start_epoch}to_E{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
 resualt_save_dir        = os.path.join('runs',experiment_name)
-del_dir = input(f"Do you want to delet [{resualt_save_dir}] directory? (y/n) ")
+del_dir = input(f"Do you want to delet [{resualt_save_dir}] directory? (y/n)")
 
 if(del_dir=='y'):
     if(os.path.exists(resualt_save_dir)):
@@ -57,8 +57,8 @@ else:
 model_save_dir          = os.path.join(resualt_save_dir , 'saved_models')
 os.makedirs(model_save_dir)  
 
-#os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0, 1,2,3"
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="0, 1,2,3"
 
 
 best_loss = 1000000000;
@@ -78,14 +78,7 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
 # model(t_in,t_in2).shape
 
 # Create Datasets
-train_list =  ['./data/train/000' ,'./data/train/001' ,'./data/train/002','./data/train/003' ,'./data/train/004'  ,
-              './data/train/005' ,'./data/train/006' ,'./data/train/007','./data/train/008' ,'./data/train/009'  ,
-              './data/train/010' ,'./data/train/011' ,'./data/train/012','./data/train/013'   ,
-               './data/train/014' ,'./data/train/015' ,'./data/train/016','./data/train/017' ,'./data/train/019'  ,
-              './data/train/020' ,'./data/train/021','./data/train/022' ,'./data/train/023'  ,
-              './data/train/024' ,'./data/train/025' ,'./data/train/026','./data/train/027'   ,
-               './data/val/002','./data/val/003' ,'./data/val/004']
-
+train_list =  ['./data/train/000' ]
 
 val_list = ['./data/val/000' ,'./data/val/001' ]
 
@@ -116,13 +109,13 @@ writer.add_graph(model,  (crop_front ,label_front))
 writer.close()
 
 # Transfer model on the GPU/GPUs
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 
-#torch.cuda.set_device(0)
+torch.cuda.set_device(0)
 model = model.to(device) 
-#if torch.cuda.device_count() > 1:
-#    print("Let's use", torch.cuda.device_count(), "GPUs!")
-#    model = nn.DataParallel(model ,device_ids=[0,1,2,3])
+if torch.cuda.device_count() > 1:
+    print("Let's use", torch.cuda.device_count(), "GPUs!")
+    model = nn.DataParallel(model ,device_ids=[0,1,2,3])
 
     
   

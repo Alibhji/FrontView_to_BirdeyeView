@@ -3,13 +3,16 @@
 #from tqdm.notebook import tqdm
 from tqdm import tqdm
 import copy
+import time
 
 
 def train_(model ,train_loader , epoch, device, criterion, optimizer, writer, history =None):
+    ep_since = time.time()  
     model.train()
     running_loss = 0.0
     r = tqdm(train_loader)
     for i, data in enumerate(r, 0):
+        since = time.time()
         # get the inputs; data is a list of [inputs, labels]
         label_front, crop_front ,label_top = data
         label_front =label_front.to(device)
@@ -31,15 +34,19 @@ def train_(model ,train_loader , epoch, device, criterion, optimizer, writer, hi
         writer.add_scalar('training batch loss',
                         batch_loss ,
                         epoch * len(train_loader) + i)
+        time_elapsed_batch = time.time() - since
+        time_elapsed = time.time() - ep_since
 
         if history is not None:
             history.loc[epoch * len(train_loader) + i, 'train_Batch_loss'] = batch_loss
+            #history.loc[epoch * len(train_loader) + i, 'time'] = time_elapsed
         
 
         # print statistics
         running_loss += loss.item() / len(train_loader)
         
-        r.set_description(f'([T/{epoch}](L: {running_loss:0.6f} , BL{batch_loss: 0.6f})')
+        
+        r.set_description(f'([T/{epoch}](L: {running_loss:0.6f} , BL{batch_loss: 0.6f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f})')
         
 #         writer.close()
         
@@ -49,14 +56,18 @@ def train_(model ,train_loader , epoch, device, criterion, optimizer, writer, hi
     writer.close()
     if history is not None:
             history.loc[epoch, 'train_loss'] = running_loss
+            history.loc[epoch, 'train_time'] =  time.time() - ep_since
+
         
     
     
 def validation_ (model ,val_loader ,epoch , device, criterion, writer, history =None):
+    ep_since = time.time() 
     model.eval()
     running_loss = 0.0
     r2 = tqdm(val_loader)
     for i, data in enumerate(r2, 0):
+        since = time.time()
         # get the inputs; data is a list of [inputs, labels]
         label_front, crop_front ,label_top = data
         label_front =label_front.to(device)
@@ -73,6 +84,8 @@ def validation_ (model ,val_loader ,epoch , device, criterion, writer, history =
         writer.add_scalar('validation batch loss',
                         batch_loss ,
                         epoch * len(val_loader) + i)
+        time_elapsed_batch = time.time() - since
+        time_elapsed = time.time() - ep_since
 
         if history is not None:
             history.loc[epoch * len(train_loader) + i, 'val_Batch_loss'] = batch_loss
@@ -81,7 +94,7 @@ def validation_ (model ,val_loader ,epoch , device, criterion, writer, history =
         # print statistics
         running_loss += loss.item() / len(val_loader)
         
-        r2.set_description(f' [E/{epoch}](L: {running_loss:0.6f} , BL{loss.item() / label_front.shape[0]: 0.6f})')
+        r2.set_description(f' [E/{epoch}](L: {running_loss:0.6f} , BL{loss.item() / label_front.shape[0]: 0.6f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f})')
         
     writer.add_scalar('validation loss',
                         running_loss ,
@@ -89,6 +102,7 @@ def validation_ (model ,val_loader ,epoch , device, criterion, writer, history =
     writer.close()
     if history is not None:
             history.loc[epoch, 'val_loss'] = running_loss
+            history.loc[epoch, 'val_time'] =  time.time() - ep_since
         
     return running_loss
         

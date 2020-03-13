@@ -3,23 +3,28 @@ import pandas as pd
 import numpy as np
 import cv2
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 
 class Dataset_top_to_birdView(Dataset):
-    def __init__(self, root , dim=(224, 224) ,n_channels= 3 ):
+    def __init__(self, root , type_='train', dim=(224, 224) ,n_channels= 3 , check_images = False ):
         self.root_dir = root
         
         self.dim = dim
         self.n_channels = n_channels
   
         pd_file = pd.DataFrame()
+
+        print(f"creating a pandas file from {type_} images and their annotations...")
         
-        for dir_ in root:
+        for dir_ in tqdm(root):
             pd_ = self._generate_pandas_file(dir_)
             pd_file = pd_file.append(pd_, ignore_index=True)
-            
-        non_exitence = self.check_image_existence(pd_file)
-        pd_file.drop (non_exitence , inplace=True)
+
+        if(check_images):
+            print(f"Validating {type_} images pathes ...")            
+            non_exitence = self.check_image_existence(pd_file)
+            pd_file.drop (non_exitence , inplace=True)
         self.pd_file = pd_file
         self.imgs_f  = np.empty(( *self.dim, self.n_channels))
         self. imgs_b  = np.empty(( *self.dim, self.n_channels))
