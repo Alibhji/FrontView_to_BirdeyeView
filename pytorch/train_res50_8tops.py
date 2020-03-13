@@ -35,15 +35,19 @@ import torchvision
 
 history = pd.DataFrame()
 
-start_epoch     = 0
-end___epoch     = 100
+start_epoch     = 100
+end___epoch     = 150
 
 train_batch     = 64
 val_batch       = 8
 num_workers     = 40
 
-learning_rate=0.001
-experiment_name = 'experiment_1'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
+
+learning_rate=0.0005
+experiment_name = 'experiment_2'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
+
+load_model_ = True
+loaded_weights = './runs/experiment_1_epoch_0_to_100_batch_64_lr_0.001/saved_models/model_E099_Loss0.003897.pt'
 
 resualt_save_dir        = os.path.join('runs',experiment_name)
 del_dir = input(f"Do you want to delet [{resualt_save_dir}] directory? (y/n) ")
@@ -68,6 +72,11 @@ best_loss = 1000000000;
 
 # Creaete Model
 model = Bkend_res50_8top()
+if load_model_:
+    state_dict = torch.load(loaded_weights)
+    model.load_state_dict(state_dict)
+    print (f"Model is loaded. [from {loaded_weights}]")
+
 
 # deefine loss and optimizer
 criterion = nn.MSELoss()
@@ -120,6 +129,8 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 #torch.cuda.set_device(0)
 model = model.to(device) 
+
+
 #if torch.cuda.device_count() > 1:
 #    print("Let's use", torch.cuda.device_count(), "GPUs!")
 #    model = nn.DataParallel(model ,device_ids=[0,1,2,3])
