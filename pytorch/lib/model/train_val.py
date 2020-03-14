@@ -56,11 +56,16 @@ def train_(model ,train_loader , epoch, device, criterion, optimizer, writer, hi
         loss.backward()
         optimizer.step()
 
-        update_meta_data(meta_data,label_top, label_front, outputs )
+
 
         
         batch_loss = copy.deepcopy(loss.item())
         batch_loss = batch_loss / label_front.shape[0]
+
+        # evaluate train dataset
+        model.eval()
+        outputs = model(crop_front,label_front)
+        update_meta_data(meta_data,label_top, label_front, outputs )
         
         writer.add_scalar('training batch loss',
                         batch_loss ,

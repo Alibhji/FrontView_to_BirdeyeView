@@ -35,19 +35,19 @@ import torchvision
 
 history = pd.DataFrame()
 
-start_epoch     = 100
-end___epoch     = 150
+start_epoch     = 200
+end___epoch     = 220
 
-train_batch     = 64
+train_batch     = 128
 val_batch       = 8
 num_workers     = 40
 
 
-learning_rate=0.0005
-experiment_name = 'experiment_3'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
+learning_rate=0.0001
+experiment_name = 'experiment_4'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
 
 load_model_ = True
-loaded_weights = './runs/experiment_1_epoch_0_to_100_batch_64_lr_0.001/saved_models/model_E099_Loss0.003897.pt'
+loaded_weights = './runs/experiment_3_epoch_150_to_200_batch_64_lr_0.0005_add_20_folder/saved_models/model_E198_Loss0.004087.pt'
 
 resualt_save_dir        = os.path.join('runs',experiment_name)
 del_dir = input(f"Do you want to delet [{resualt_save_dir}] directory? (y/n) ")
@@ -72,10 +72,12 @@ best_loss = 1000000000;
 
 # Creaete Model
 model = Bkend_res50_8top()
+print(f"[info] Model is created.")
+
 if load_model_:
     state_dict = torch.load(loaded_weights)
     model.load_state_dict(state_dict)
-    print (f"Model is loaded. [from {loaded_weights}]")
+    print (f"[info] Model is loaded. [from {loaded_weights}]")
 
 
 # deefine loss and optimizer
@@ -87,10 +89,16 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
 # model(t_in,t_in2).shape
 
 # Create Datasets
-train_list =  ['./data/train/000']
+
+dataset_root = './data'
+
+root_train = os.path.join(dataset_root , 'train')
+root_val   = os.path.join(dataset_root , 'val'  )
+root_test  = os.path.join(dataset_root , 'test' )
 
 
-val_list = ['./data/val/000' ,'./data/val/001' ]
+train_list = [os.path.join(root_train,itm) for itm in os.listdir(root_train) if os.path.isdir(os.path.join(root_train,itm))]
+val_list   = [os.path.join(root_val,itm) for itm in os.listdir(root_val) if os.path.isdir(os.path.join(root_val,itm))]
 
 training_generator     = Dataset_top_to_birdView( train_list ,type_='train' ,check_images =True)
 validation_generator   = Dataset_top_to_birdView( val_list ,type_='val' ,check_images =True)
@@ -101,6 +109,11 @@ validation_generator   = Dataset_top_to_birdView( val_list ,type_='val' ,check_i
 train_loader = DataLoader(training_generator  , batch_size = train_batch ,num_workers = num_workers ,shuffle =True , pin_memory =True)
 val_loader   = DataLoader(validation_generator, batch_size = val_batch   ,num_workers = num_workers)
 
+len_t =len(train_loader) * train_batch
+len_v =len(val_loader)   *   val_batch
+
+print(f'[info] Train dataset has:{len_t} images.' )
+print(f'[info] val   dataset has:{len_v} images.' )
 
 #create tensorbordx Logger
 writer = SummaryWriter(resualt_save_dir)
@@ -120,6 +133,8 @@ writer.close()
 
 # Transfer model on the GPU/GPUs
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") 
+
+print(f"[info] Devie is:{device}")
 
 #torch.cuda.set_device(0)
 model = model.to(device) 
