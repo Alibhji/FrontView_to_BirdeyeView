@@ -99,7 +99,7 @@ writer = SummaryWriter(resualt_save_dir)
 
 # get some random training images save model architecture and dataset sample
 dataiter = iter(train_loader)
-label_front, crop_front ,label_top = dataiter.next()
+label_front, crop_front ,label_top ,meta_data = dataiter.next()
 
 # create grid of images
 img_grid = torchvision.utils.make_grid(crop_front)

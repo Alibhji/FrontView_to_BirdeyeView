@@ -12,6 +12,7 @@ class Dataset_top_to_birdView(Dataset):
         
         self.dim = dim
         self.n_channels = n_channels
+        self.meta_data= dict()
   
         pd_file = pd.DataFrame()
 
@@ -30,6 +31,7 @@ class Dataset_top_to_birdView(Dataset):
         self. imgs_b  = np.empty(( *self.dim, self.n_channels))
         self.bboxs_f  = np.empty((4))
         self.bboxs_b  = np.empty((4)) 
+	
             
     def _generate_pandas_file(self , root):
         dataset = dict()
@@ -125,7 +127,7 @@ class Dataset_top_to_birdView(Dataset):
         bboxs_f = bbox_f
         bboxs_b = bbox_b
             
-        return imgs_f ,imgs_b , bboxs_f ,bboxs_b 
+        return imgs_f ,imgs_b , bboxs_f ,bboxs_b ,row
     
     
     def __len__(self):
@@ -134,13 +136,14 @@ class Dataset_top_to_birdView(Dataset):
     
     def __getitem__(self, index):
 #         print(self.pd_file.iloc[index])
-        self.imgs_f ,self.imgs_b , self.bboxs_f ,self.bboxs_b = self._generate_crop_imgs(index)
+        self.imgs_f ,self.imgs_b , self.bboxs_f ,self.bboxs_b  ,row = self._generate_crop_imgs(index)
         self.imgs_f = np.moveaxis(self.imgs_f, 2, 0).astype(np.float32)
         self.imgs_b = np.moveaxis(self.imgs_b, 2, 0).astype(np.float32)
         self.imgs_f =  self.imgs_f / 255.
         self.imgs_b =  self.imgs_b / 255.
-
-
+        self.meta_data =  row.to_dict()
+        for itm in ['xf_min','xf_max' ,'yf_min','yf_max','xb_min','yb_min','xb_max','yb_max'] :
+            del self.meta_data[itm]
 
 	
-        return self.bboxs_f , self.imgs_f , self.bboxs_b
+        return self.bboxs_f , self.imgs_f , self.bboxs_b , self.meta_data

@@ -44,7 +44,7 @@ num_workers     = 40
 
 
 learning_rate=0.0005
-experiment_name = 'experiment_2'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
+experiment_name = 'experiment_3'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
 
 load_model_ = True
 loaded_weights = './runs/experiment_1_epoch_0_to_100_batch_64_lr_0.001/saved_models/model_E099_Loss0.003897.pt'
@@ -87,13 +87,7 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
 # model(t_in,t_in2).shape
 
 # Create Datasets
-train_list =  ['./data/train/000' ,'./data/train/001' ,'./data/train/002','./data/train/003' ,'./data/train/004'  ,
-              './data/train/005' ,'./data/train/006' ,'./data/train/007','./data/train/008' ,'./data/train/009'  ,
-              './data/train/010' ,'./data/train/011' ,'./data/train/012','./data/train/013'   ,
-               './data/train/014' ,'./data/train/015' ,'./data/train/016','./data/train/017' ,'./data/train/019'  ,
-              './data/train/020' ,'./data/train/021','./data/train/022' ,'./data/train/023'  ,
-              './data/train/024' ,'./data/train/025' ,'./data/train/026','./data/train/027'   ,
-               './data/val/002','./data/val/003' ,'./data/val/004']
+train_list =  ['./data/train/000']
 
 
 val_list = ['./data/val/000' ,'./data/val/001' ]
@@ -115,7 +109,7 @@ writer = SummaryWriter(resualt_save_dir)
 
 # get some random training images save model architecture and dataset sample
 dataiter = iter(train_loader)
-label_front, crop_front ,label_top = dataiter.next()
+label_front, crop_front ,label_top, meta_data = dataiter.next()
 
 # create grid of images
 img_grid = torchvision.utils.make_grid(crop_front)
