@@ -27,26 +27,31 @@ import gc
 
 
 
-
 from torch.utils.tensorboard import SummaryWriter
 SummaryWriter._PRINT_DEPRECATION_WARNINGS = False
 import torchvision
 
-
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="0, 1,2,3"
 
 history = pd.DataFrame()
 
-start_epoch     = 0
-end___epoch     = 100
+start_epoch     = 210
+end___epoch     = 230
 
-train_batch     = 8
-val_batch       = 8
+train_batch     = 256
+val_batch       = 256
 num_workers     = 40
 
-learning_rate=0.001
-experiment_name = 'experiment_1'+f'_epoch_{start_epoch}to_E{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
+
+learning_rate=0.00025
+experiment_name = 'experiment_5'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}_MultiGpu'
+
+load_model_ = True
+loaded_weights = './runs/experiment_4_epoch_200_to_220_batch_128_lr_0.0001/saved_models/model_E209_Loss0.003482.pt'
+
 resualt_save_dir        = os.path.join('runs',experiment_name)
-del_dir = input(f"Do you want to delet [{resualt_save_dir}] directory? (y/n)")
+del_dir = input(f"Do you want to delet [{resualt_save_dir}] directory? (y/n) ")
 
 if(del_dir=='y'):
     if(os.path.exists(resualt_save_dir)):
@@ -57,8 +62,8 @@ else:
 model_save_dir          = os.path.join(resualt_save_dir , 'saved_models')
 os.makedirs(model_save_dir)  
 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0, 1,2,3"
+#os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0, 1,2,3"
 
 
 best_loss = 1000000000;
@@ -68,6 +73,14 @@ best_loss = 1000000000;
 
 # Creaete Model
 model = Bkend_res50_8top()
+print(f"[info] Model is created.")
+
+if load_model_:
+    state_dict = torch.load(loaded_weights)
+    model.load_state_dict(state_dict)
+    print (f"[info] Model is loaded. [from {loaded_weights}]")
+
+
 
 # deefine loss and optimizer
 criterion = nn.MSELoss()
@@ -78,12 +91,19 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
 # model(t_in,t_in2).shape
 
 # Create Datasets
-train_list =  ['./data/train/000' ]
 
-val_list = ['./data/val/000' ,'./data/val/001' ]
+dataset_root = './data'
 
-training_generator     = Dataset_top_to_birdView( train_list ,type_='train' ,check_images =True)
-validation_generator   = Dataset_top_to_birdView( val_list ,type_='val' ,check_images =True)
+root_train = os.path.join(dataset_root , 'train')
+root_val   = os.path.join(dataset_root , 'val'  )
+root_test  = os.path.join(dataset_root , 'test' )
+
+
+train_list = [os.path.join(root_train,itm) for itm in os.listdir(root_train) if os.path.isdir(os.path.join(root_train,itm))]
+val_list   = [os.path.join(root_val,itm) for itm in os.listdir(root_val) if os.path.isdir(os.path.join(root_val,itm))]
+
+training_generator     = Dataset_top_to_birdView( train_list ,type_='train' ,check_images = False)
+validation_generator   = Dataset_top_to_birdView( val_list ,type_='val' ,check_images = False)
 
 # create Dataloader
 
@@ -91,6 +111,11 @@ validation_generator   = Dataset_top_to_birdView( val_list ,type_='val' ,check_i
 train_loader = DataLoader(training_generator  , batch_size = train_batch ,num_workers = num_workers ,shuffle =True , pin_memory =True)
 val_loader   = DataLoader(validation_generator, batch_size = val_batch   ,num_workers = num_workers)
 
+len_t =len(train_loader) * train_batch
+len_v =len(val_loader)   *   val_batch
+
+print(f'[info] Train dataset has:{len_t} images.' )
+print(f'[info] val   dataset has:{len_v} images.' )
 
 #create tensorbordx Logger
 writer = SummaryWriter(resualt_save_dir)
@@ -99,7 +124,7 @@ writer = SummaryWriter(resualt_save_dir)
 
 # get some random training images save model architecture and dataset sample
 dataiter = iter(train_loader)
-label_front, crop_front ,label_top ,meta_data = dataiter.next()
+label_front, crop_front ,label_top, meta_data = dataiter.next()
 
 # create grid of images
 img_grid = torchvision.utils.make_grid(crop_front)
@@ -111,11 +136,21 @@ writer.close()
 # Transfer model on the GPU/GPUs
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 
-torch.cuda.set_device(0)
-model = model.to(device) 
+
 if torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = nn.DataParallel(model ,device_ids=[0,1,2,3])
+
+
+print(f"[info] Devie is:{device}")
+
+#torch.cuda.set_device(0)
+model = model.to(device) 
+
+
+#if torch.cuda.device_count() > 1:
+#    print("Let's use", torch.cuda.device_count(), "GPUs!")
+#    model = nn.DataParallel(model ,device_ids=[0,1,2,3])
 
     
   
@@ -149,7 +184,7 @@ for epoch in range(start_epoch ,end___epoch):  # loop over the dataset multiple 
     
 
     if curr_val_loss  < best_loss:
-        model_save_format = f"model_E{epoch:03d}_Loss{curr_val_loss:.6f}.pt"
+        model_save_format = f"model_E{epoch:03d}_Loss{curr_val_loss:.6f}_MultiGpu.pt"
         #torch.save(model.state_dict(), os.path.join(experiment_name ,f"./model_E{epoch:03d}_Loss{curr_val_loss:.6f}.pt"))
         torch.save(model.state_dict(), os.path.join(model_save_dir , model_save_format))
         #print (f"./model_E{epoch:03d}_Loss{curr_val_loss:.6f}.pt  is saved.")

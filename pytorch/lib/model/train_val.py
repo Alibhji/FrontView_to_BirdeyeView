@@ -82,12 +82,12 @@ def train_(model ,train_loader , epoch, device, criterion, optimizer, writer, hi
         running_loss += loss.item() / len(train_loader)
         
         
-        r.set_description(f'([T/{epoch}](L: {running_loss:0.6f} , BL{batch_loss: 0.6f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f})')
+        r.set_description(f'([T/{epoch}](L: {running_loss:0.6f} , BL{batch_loss: 0.8f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f})')
         if (i == len(train_loader)-1):
             mAp_50 = mAP(Meta_Data ,.50) * 100
             mAp_75 = mAP(Meta_Data ,.75) * 100
             mAp_90 = mAP(Meta_Data ,.90) * 100
-            r.set_description(f'([T/{epoch}](L: {running_loss:0.6f} , BL{batch_loss: 0.6f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f} [mAP_50: {mAp_50:02.3f}%, mAP_75: {mAp_75:02.3f}%, mAP_90: {mAp_90:02.3f}%]')
+            r.set_description(f'([T/{epoch}](L: {running_loss:0.6f} , BL{batch_loss: 0.8f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f} [mAP_50: {mAp_50:02.3f}%, mAP_75: {mAp_75:02.3f}%, mAP_90: {mAp_90:02.3f}%]')
 #         writer.close()
         
     writer.add_scalar('training loss',
@@ -145,12 +145,12 @@ def validation_ (model ,val_loader ,epoch , device, criterion, writer, history =
         # print statistics
         running_loss += loss.item() / len(val_loader)
         
-        r2.set_description(f' [E/{epoch}](L: {running_loss:0.6f} , BL{loss.item() / label_front.shape[0]: 0.6f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f})')
+        r2.set_description(f' [E/{epoch}](L: {running_loss:0.6f} , BL{loss.item() : 0.8f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f})')
         if (i == len(val_loader)-1):
             mAp_50 = mAP(Meta_Data ,.50) * 100
             mAp_75 = mAP(Meta_Data ,.75) * 100
             mAp_90 = mAP(Meta_Data ,.90) * 100
-            r2.set_description(f'([T/{epoch}](L: {running_loss:0.6f} , BL{batch_loss: 0.6f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f} [mAP_50: {mAp_50:02.3f}%, mAP_75: {mAp_75:02.3f}%, mAP_90: {mAp_90:02.3f}%]')
+            r2.set_description(f'([T/{epoch}](L: {running_loss:0.6f} , BL{batch_loss : 0.8f} ,time {time_elapsed_batch: 03.3f} {time_elapsed: 03.3f} [mAP_50: {mAp_50:02.3f}%, mAP_75: {mAp_75:02.3f}%, mAP_90: {mAp_90:02.3f}%]')
         
     writer.add_scalar('validation loss',
                         running_loss ,

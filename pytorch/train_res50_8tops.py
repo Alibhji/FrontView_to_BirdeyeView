@@ -35,19 +35,19 @@ import torchvision
 
 history = pd.DataFrame()
 
-start_epoch     = 200
-end___epoch     = 220
+start_epoch     = 360
+end___epoch     = 385
 
-train_batch     = 128
-val_batch       = 8
+train_batch     = 512
+val_batch       = 512
 num_workers     = 40
 
 
-learning_rate=0.0001
-experiment_name = 'experiment_4'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
+learning_rate=0.2
+experiment_name = 'experiment_14'+f'_epoch_{start_epoch}_to_{end___epoch}_batch_{train_batch}_lr_{learning_rate}'
 
 load_model_ = True
-loaded_weights = './runs/experiment_3_epoch_150_to_200_batch_64_lr_0.0005_add_20_folder/saved_models/model_E198_Loss0.004087.pt'
+loaded_weights = './runs/experiment_13_epoch_350_to_360_batch_512_lr_0.2/saved_models/model_E352_Loss0.002353.pt'
 
 resualt_save_dir        = os.path.join('runs',experiment_name)
 del_dir = input(f"Do you want to delet [{resualt_save_dir}] directory? (y/n) ")
